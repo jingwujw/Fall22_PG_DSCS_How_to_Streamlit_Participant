@@ -1,1 +1,3 @@
-print('Hello, world!')
+import streamlit as st
+
+st.header('Hello, world 👋')

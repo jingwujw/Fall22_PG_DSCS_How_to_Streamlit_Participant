@@ -79,6 +79,7 @@ y, X = y.align(X, join='inner', axis=0)
 st.write('In this case, I used a test size of 25% with no shuffle to preserve the timeseries characteristics of the dataset.')
 # Create splits
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, shuffle=False)
+st.code('X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, shuffle=False)', 'python')
 
 st.header('Machine Learning Approaches')
 tab_1, tab_2 = st.tabs(['Linear Regression', 'XGBoost Regressor'])
@@ -158,5 +159,3 @@ This is my conclusion!
 ''')
 
 # How to use XGBoost for stock prediction: https://www.kaggle.com/code/mtszkw/xgboost-for-stock-trend-prices-prediction
-
-

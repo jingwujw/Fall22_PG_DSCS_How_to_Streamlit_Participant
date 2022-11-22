@@ -15,4 +15,3 @@ In case you find any of these interesting, feel free to reach out:
 
 [LinkedIn](https://www.linkedin.com/in/marc-robin-gruener/)    [Email](mailto:marc-robin.gruener@student.unisg.ch)
 ''')
-

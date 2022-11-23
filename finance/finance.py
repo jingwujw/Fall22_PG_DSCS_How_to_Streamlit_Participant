@@ -12,6 +12,15 @@ from sklearn.multioutput import RegressorChain
 from xgboost import XGBRegressor
 
 def create_visualization(y_test:pd.DataFrame, y_pred: pd.DataFrame) -> go.Figure:
+    """Creating and returning visualizations for the fitting and prediction data
+
+    Args:
+        y_test (pd.DataFrame): Y-test data
+        y_pred (pd.DataFrame): Y-prediction data
+
+    Returns:
+        go.Figure: Vigure showing predictions and actuals
+    """
     fig = go.Figure()
 
     colorscale = n_colors('rgb(67, 198, 172)', 'rgb(25, 22, 84)', len(y_pred), colortype='rgb')
@@ -25,6 +34,16 @@ def create_visualization(y_test:pd.DataFrame, y_pred: pd.DataFrame) -> go.Figure
 
 
 def make_lags(ts, lags, lead_time=1):
+    """Creating lags for each prediction
+
+    Args:
+        ts (_type_): y-data to be 'lagged'
+        lags (_type_): Number of lags
+        lead_time (int, optional): Lead time aka. first ts in the future to be predicted. Defaults to 1.
+
+    Returns:
+        _type_: Lagged data
+    """
     return pd.concat(
         {
             f'y_lag_{i}': ts.shift(i)
@@ -34,6 +53,15 @@ def make_lags(ts, lags, lead_time=1):
 
 
 def make_multistep_target(ts, steps):
+    """_summary_
+
+    Args:
+        ts (_type_): y-data to be stepped
+        steps (_type_): number of steps
+
+    Returns:
+        _type_: Multistepped data
+    """
     return pd.concat(
         {f'y_step_{i + 1}': ts.shift(-i)
          for i in range(steps)},
@@ -92,5 +120,3 @@ create_visualization(y_train, y_fit).show()
 create_visualization(y_test, y_pred).show()
 
 # How to use XGBoost for stock prediction: https://www.kaggle.com/code/mtszkw/xgboost-for-stock-trend-prices-prediction
-
-

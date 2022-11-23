@@ -1,5 +1,5 @@
 # Adapted from: https://www.kaggle.com/code/ryanholbrook/forecasting-with-machine-learning/tutorial
-from pathlib import Path
+
 
 import plotly.graph_objects as go
 from plotly.colors import n_colors
@@ -8,8 +8,8 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression, MultiTaskLasso
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
+from sklearn.multioutput import RegressorChain
 from xgboost import XGBRegressor
-from joblib import dump, load
 
 def create_visualization(y_test:pd.DataFrame, y_pred: pd.DataFrame) -> go.Figure:
     fig = go.Figure()
@@ -24,10 +24,6 @@ def create_visualization(y_test:pd.DataFrame, y_pred: pd.DataFrame) -> go.Figure
     return fig
 
 
-apple_stock = pd.read_csv("./finance/apple.csv", index_col='Date')
-apple_stock.index = pd.to_datetime(apple_stock.index)
-apple_stock.sort_index(inplace=True)
-
 def make_lags(ts, lags, lead_time=1):
     return pd.concat(
         {
@@ -36,10 +32,6 @@ def make_lags(ts, lags, lead_time=1):
         },
         axis=1)
 
-# Thirty days of lag features
-y = apple_stock.Close.copy()
-X = make_lags(y, lags=30).fillna(0.0)
-
 
 def make_multistep_target(ts, steps):
     return pd.concat(
@@ -47,6 +39,14 @@ def make_multistep_target(ts, steps):
          for i in range(steps)},
         axis=1)
 
+
+apple_stock = pd.read_csv("./finance/apple.csv", index_col='Date')
+apple_stock.index = pd.to_datetime(apple_stock.index)
+apple_stock.sort_index(inplace=True)
+
+# Thirty days of lag features
+y = apple_stock.Close.copy()
+X = make_lags(y, lags=30).fillna(0.0)
 
 # 7 Day forecast
 y = make_multistep_target(y, steps=7).dropna()
@@ -62,7 +62,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, shuffl
 ### Model 1: Basic Direct LinReg
 model = LinearRegression()
 model.fit(X_train, y_train)
-dump(model, './finance/dir_linreg.joblib')
 
 y_fit = pd.DataFrame(model.predict(X_train), index=X_train.index, columns=y.columns)
 y_pred = pd.DataFrame(model.predict(X_test), index=X_test.index, columns=y.columns)
@@ -74,21 +73,6 @@ print((f"Train RMSE: {train_rmse:.2f}\n" f"Test RMSE: {test_rmse:.2f}"))
 create_visualization(y_train, y_fit).show()
 create_visualization(y_test, y_pred).show()
 
-
-### Model 2: Basic Direct Lasso
-model = MultiTaskLasso()
-model.fit(X_train, y_train)
-dump(model, './finance/dir_lasso.joblib')
-
-y_fit = pd.DataFrame(model.predict(X_train), index=X_train.index, columns=y.columns)
-y_pred = pd.DataFrame(model.predict(X_test), index=X_test.index, columns=y.columns)
-
-train_rmse = mean_squared_error(y_train, y_fit, squared=False)
-test_rmse = mean_squared_error(y_test, y_pred, squared=False)
-print((f"Train RMSE: {train_rmse:.2f}\n" f"Test RMSE: {test_rmse:.2f}"))
-
-create_visualization(y_train, y_fit).show()
-create_visualization(y_test, y_pred).show()
 
 
 ### Model 3: DirRec XGBoost
@@ -96,7 +80,6 @@ from sklearn.multioutput import RegressorChain
 
 model = RegressorChain(XGBRegressor())
 model.fit(X_train, y_train)
-dump(model, './finance/dirrec_xgb.joblib')
 
 y_fit = pd.DataFrame(model.predict(X_train), index=X_train.index, columns=y.columns)
 y_pred = pd.DataFrame(model.predict(X_test), index=X_test.index, columns=y.columns)
